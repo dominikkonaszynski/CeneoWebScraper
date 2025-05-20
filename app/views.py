@@ -15,7 +15,7 @@ def index():
 def display_form():
     return render_template("extract.html")
 
-@app.route("/extract", method=("POST"))
+@app.route("/extract", methods=["POST"])
 def extract():
     product_id = request.form.get('product_id')
     next_page = f"https://www.ceneo.pl/{product_id}#tab=reviews"
@@ -23,33 +23,27 @@ def extract():
     while next_page:
         print(next_page)
         response = requests.get(next_page, headers=headers)
-
         if response.status_code == 200:
-
             page_dom = BeautifulSoup(response.text, "html.parser")
-
             opinions = page_dom.select("div.js_product-review:not(.user-post--highlight)")
-
             for opinion in opinions:
                 single_opinion = {
                     key: utils.extract_feature(opinion, *value)
                     for key, value in utils.selectors.items()
                 }
-                    
                 all_opinions.append(single_opinion)
             try:
                 next_page = "https://www.ceneo.pl"+extract(page_dom, "a.pagination__next", "href")
             except TypeError:
                 next_page = None
-        else: 
-            print(response.status_code)
-    if not os.path.exists("./opinions"):
-        os.mkdir("./opinions")
-
-    with open(f"./opinions/{product_id}.json", "w", encoding="UTF-8") as jf:
+        else: print(response.status_code)
+    if not os.path.exists("./app/data"):
+        os.mkdir("./app/data")
+    if not os.path.exists("./app/data/opinions"):
+        os.mkdir("./app/data/opinions")
+    with open(f"./app/data/opinions/{product_id}.json", "w", encoding="UTF-8") as jf:
         json.dump(all_opinions, jf, indent=4, ensure_ascii=False)
-
-    return redirect(url_for('product', product_id=product))
+    return redirect(url_for('product', product_id=product_id))
 
 @app.route("/products")
 def products():
