@@ -1,11 +1,12 @@
 from app import app
 import os
+import io
 import json
 import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 from matplotlib import pyplot as plt
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, send_file, jsonify
 from config import headers
 from app import utils
 
@@ -76,7 +77,7 @@ def extract():
     opinions = pd.DataFrame.from_dict(all_opinions)
     opinions.stars = opinions.stars.apply(lambda s: s.split("/")[0].replace(",",".")).astype(float)
     opinions.useful = opinions.useful.astype(int)
-    opinions.useless = opinions.useless.astype(int)
+    opinions.unuseful = opinions.unuseful.astype(int)
     stats = {
         "product_id": product_id,
         "product_name": product_name,
@@ -109,8 +110,43 @@ def product(product_id):
     with open(f"./app/data/opinions/{product_id}.json", "r", encoding="UTF-8") as jf:
         opinions = json.load(jf)
     return render_template("product.html", product_id=product_id, product_name=product_name, opinions=opinions) 
-   
 
+@app.route('/export/<product_id>/<format>')
+def export_opinions(product_id, format):
+    filepath = f"./app/data/opinions/{product_id}.json"
+    if not os.path.exists(filepath):
+        return f"Opinie dla produktu {product_id} nie istnieją.", 404
+    with open(filepath, encoding="utf-8") as f:
+        opinions = json.load(f)
+    if not opinions:
+        return f"Brak opinii dla produktu {product_id}.", 400
+    if format == "json":
+        return jsonify(opinions)
+    df = pd.DataFrame(opinions)
+    if format == "csv":
+        output = io.StringIO()
+        df.to_csv(output, index=False)
+        output.seek(0)
+        return send_file(
+            io.BytesIO(output.getvalue().encode()),
+            mimetype="text/csv",
+            as_attachment=True,
+            download_name=f"{product_id}_opinions.csv")
+
+    elif format == "xlsx":
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Opinions')
+        output.seek(0)
+        return send_file(
+            output,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name=f"{product_id}_opinions.xlsx"
+        )
+
+    else:
+        return "Nieobsługiwany format pliku.", 400
 
 @app.route('/charts/<product_id>')
 def charts(product_id):
