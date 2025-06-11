@@ -1,10 +1,18 @@
 {% extends 'base.html' %}
 {% block title %}Opis projektu{% endblock %}
 {% block content %}
-<ol>
-    <li>Cel aplikacji</li>
-    <li>Opis działania aplikacji</li>
-    <li>Zastosowane biblioteki</li>
-    <li>Zastosowane podejścia</li>
-</ol>
+<div class="list-group w-50">
+        <div class="list-group-item list-group-item-action">
+            <strong>Cel aplikacji:</strong> Automatyzacja procesu pobierania opinii o produktach z serwisu Ceneo.pl. Zebrane dane mogą służyć do dalszej analizy, np. statystycznej lub marketingowej.
+        </div>
+        <div class="list-group-item list-group-item-action">
+            <strong>Opis działania aplikacji:</strong> Po podaniu przez użytkownika kodu produktu, aplikacja automatycznie przegląda wszystkie strony z opiniami, wydobywając z nich kluczowe informacje, takie jak ocena, treść, zalety i wady. Pokazuje te dane również na dwóch wykresach.
+        </div>
+        <div class="list-group-item list-group-item-action">
+            <strong>Zastosowane biblioteki:</strong><br> Flask: do budowy interfejsu webowego. <br>  Requests: do pobierania zawartości stron. <br> BeautifulSoup4: do parsowania kodu HTML. <br> Pandas: do zarządzania danymi i ich eksportu.
+        </div>
+        <div class="list-group-item list-group-item-action">
+            <strong>Zastosowane podejścia:</strong> Projekt wykorzystuje techniki web scrapingu do analizy strony Ceneo.pl. Aplikacja została zaprojektowana tak, aby radzić sobie z paginacją (wieloma stronami opinii) i zapisywać dane w ustrukturyzowanej formie.
+        </div>
+    </div>
 {% endblock %}
